@@ -17,8 +17,9 @@ import vn.hungbui.jobhunter.domain.RestResponse;
 
 @RestControllerAdvice
 public class GlobalException {
+
+    //Phương thức xử lý ngoại lệ: sai tên đăng nhập, sai xác thực (mật khẩu),...
     @ExceptionHandler(value = {
-            IdInvalidException.class,
             UsernameNotFoundException.class,
             BadCredentialsException.class
     })
@@ -30,6 +31,7 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(res);
     }
 
+    //Phương thức xử lý ngoại lệ: tham số đầu vào không hợp lệ
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<RestResponse<Object>> validationError(MethodArgumentNotValidException ex) {
         BindingResult result = ex.getBindingResult();
