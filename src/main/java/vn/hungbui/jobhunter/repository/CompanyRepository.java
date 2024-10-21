@@ -3,10 +3,9 @@ package vn.hungbui.jobhunter.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-
-import vn.hungbui.jobhunter.domain.User;
+import vn.hungbui.jobhunter.domain.Company;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
-    User findByEmail(String email);
+public interface CompanyRepository extends JpaRepository<Company, Long>, JpaSpecificationExecutor<Company> {
+
 }
