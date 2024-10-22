@@ -48,7 +48,7 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         authz -> authz
-                                .requestMatchers("/", "/login").permitAll()
+                                .requestMatchers("/", "/api/v1/login").permitAll()
                                 .anyRequest().authenticated())
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())  //Cấu hình ứng dụng như một OAuth2 Resource Server, sử dụng JWT để xác thực.
                         .authenticationEntryPoint(customAuthenticationEntryPoint)) // gọi đến class config customauthenentrypoint
