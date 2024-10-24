@@ -48,7 +48,7 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         authz -> authz
-                                .requestMatchers("/", "/api/v1/auth/login").permitAll()
+                                .requestMatchers("/", "/api/v1/auth/login","/api/v1/auth/refresh").permitAll()
                                 .anyRequest().authenticated())
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())  //Cấu hình ứng dụng như một OAuth2 Resource Server, sử dụng JWT để xác thực.
                         .authenticationEntryPoint(customAuthenticationEntryPoint)) // gọi đến class config customauthenentrypoint
@@ -64,11 +64,15 @@ public class SecurityConfiguration {
         return http.build();
     }
 
+    //Lấy thông tin từ jwt nạp vào authority
+    //Cần dùng cái gì thì khai báo tên claim của cái đó (VD ở đây đang laays thông tin từ claim permission để nạp vào)
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         // ánh xạ các quyền từ claim 'hungbui' (trong JWT payload) mà không cần tiền tố (prefix).
+        //Nạp quyền hạn (authority) từ jwt sang security context
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         grantedAuthoritiesConverter.setAuthorityPrefix("");
+        //Cần ghi name đúng để có thể lấy đc thông tin nạp vào security context
         grantedAuthoritiesConverter.setAuthoritiesClaimName("permission");
 
         //chuyển đổi JWT thành các quyền hạn của người dùng.

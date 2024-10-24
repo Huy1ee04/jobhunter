@@ -1,5 +1,6 @@
 package vn.hungbui.jobhunter.util;
 
+import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWT;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -7,16 +8,16 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.JwsHeader;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 import vn.hungbui.jobhunter.domain.dto.ResLoginDTO;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 //Lớp SecurityUtil được thiết kế để tạo các JWT dựa trên đối tượng Authentication cung cấp.
@@ -42,18 +43,27 @@ public class SecurityUtil {
     private long refreshTokenExpiration;
 
     //phương thức tạo JWT dựa trên đối tượng Authentication cung cấp
-    public String createAccessToken(Authentication authentication, ResLoginDTO.UserLogin resLoginDTO) {
+    //Video 88: thay tham số Authentication authentication thành String email
+    public String createAccessToken(String email, ResLoginDTO.UserLogin resLoginDTO) {
         Instant now = Instant.now();
         //Lấy thời gian hiện tại (now) và tính thời gian hết hạn bằng cách cộng thêm giá trị accessTokenExpiration.
         Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
-        // @formatter:off
+
+        // hardcode permission (for testing)
+        List<String> listAuthority = new ArrayList<String>();
+        listAuthority.add("ROLE_USER_CREATE");
+        listAuthority.add("ROLE_USER_UPDATE");
+
         // Định nghĩa các claims (payload) của JWT
+        // @formatter:off
         JwtClaimsSet claims = JwtClaimsSet.builder()
             .issuedAt(now) //Thiết lập thời gian cấp token.
             .expiresAt(validity) //Thiết lập tg hết hạn
-            .subject(authentication.getName())
+            //.subject(authentication.getName())
+                .subject(email) //Video 88
             //.claim("hungbui", authentication)  nếu payload trả về authentication thì phần payload sẽ chứa nhiều thông tin không cần thiết
-                .claim("user",resLoginDTO) //Trả về resLoginDTO.getUser() là đủ
+            .claim("user",resLoginDTO) //Trả về resLoginDTO.getUser() là đủ
+            .claim("permission", listAuthority)
             .build();
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
@@ -77,6 +87,23 @@ public class SecurityUtil {
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
 
+    }
+
+    //Video 87,88: check Valid refresh token
+    private SecretKey getSecretKey() {
+        byte[] keyBytes = Base64.from(jwtKey).decode();
+        return new SecretKeySpec(keyBytes, 0, keyBytes.length,
+                JWT_ALGORITHM.getName());
+    }
+    public Jwt checkValidRefreshToken(String token){
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(
+                getSecretKey()).macAlgorithm(SecurityUtil.JWT_ALGORITHM).build();
+        try {
+            return jwtDecoder.decode(token);
+        } catch (Exception e) {
+            System.out.println(">>> Refresh Token error: " + e.getMessage());
+            throw e;
+        }
     }
     /**
      * Get the login of the current user.
