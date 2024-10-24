@@ -1,5 +1,6 @@
 package vn.hungbui.jobhunter.domain.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ResLoginDTO {
+    @JsonProperty("access_token") //Sau này trả về cho người dùng sẽ có tên là access_token bất kể backend đặt tên là gì
     private String accessToken;
     private UserLogin user;
 
@@ -32,4 +34,13 @@ public class ResLoginDTO {
         private String email;
         private String name;
     }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class UserGetAccount {
+        private UserLogin user;
+    }
+
 }
