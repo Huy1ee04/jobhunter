@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
+import vn.hungbui.jobhunter.domain.dto.ResLoginDTO;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -35,21 +36,43 @@ public class SecurityUtil {
     private String jwtKey;
 
     @Value("${hungbui.jwt.access-token-validity-in-seconds}")
-    private long jwtExpiration;
+    private long accessTokenExpiration;
+
+    @Value("${hungbui.jwt.refresh-token-validity-in-seconds}")
+    private long refreshTokenExpiration;
 
     //phương thức tạo JWT dựa trên đối tượng Authentication cung cấp
-    public String createToken(Authentication authentication) {
+    public String createAccessToken(Authentication authentication, ResLoginDTO.UserLogin resLoginDTO) {
         Instant now = Instant.now();
-        //Lấy thời gian hiện tại (now) và tính thời gian hết hạn bằng cách cộng thêm giá trị jwtExpiration.
-        Instant validity = now.plus(this.jwtExpiration, ChronoUnit.SECONDS);
+        //Lấy thời gian hiện tại (now) và tính thời gian hết hạn bằng cách cộng thêm giá trị accessTokenExpiration.
+        Instant validity = now.plus(this.accessTokenExpiration, ChronoUnit.SECONDS);
         // @formatter:off
         // Định nghĩa các claims (payload) của JWT
         JwtClaimsSet claims = JwtClaimsSet.builder()
             .issuedAt(now) //Thiết lập thời gian cấp token.
             .expiresAt(validity) //Thiết lập tg hết hạn
             .subject(authentication.getName())
-            .claim("hungbui", authentication)  //Thêm một claim tùy chỉnh vào JWT. Ở đây, khóa của claim là "hungbui", giá trị là đối tượng Authentication.
+            //.claim("hungbui", authentication)  nếu payload trả về authentication thì phần payload sẽ chứa nhiều thông tin không cần thiết
+                .claim("user",resLoginDTO) //Trả về resLoginDTO.getUser() là đủ
             .build();
+
+        JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
+        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
+
+    }
+
+    public String createRefreshToken(String email, ResLoginDTO dto) {
+        Instant now = Instant.now();
+        //Lấy thời gian hiện tại (now) và tính thời gian hết hạn bằng cách cộng thêm giá trị accessTokenExpiration.
+        Instant validity = now.plus(this.refreshTokenExpiration, ChronoUnit.SECONDS);
+        // @formatter:off
+        // Định nghĩa các claims (payload) của JWT
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuedAt(now) //Thiết lập thời gian cấp token.
+                .expiresAt(validity) //Thiết lập tg hết hạn
+                .subject(email)
+                .claim("user", dto.getUser())  //Thêm một claim tùy chỉnh vào JWT. Ở đây, khóa của claim là "hungbui", giá trị là đối tượng Authentication.
+                .build();
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();

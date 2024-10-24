@@ -5,9 +5,11 @@ import java.time.Instant;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Getter; //dùng lombok để nó tự tạo geter, setter, construction cho mình
 import lombok.Setter;
 import vn.hungbui.jobhunter.util.SecurityUtil;
+
 
 @Table(name = "companies")
 @Entity

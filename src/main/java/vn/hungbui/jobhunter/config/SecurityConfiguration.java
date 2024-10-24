@@ -48,7 +48,7 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(
                         authz -> authz
-                                .requestMatchers("/", "/api/v1/login").permitAll()
+                                .requestMatchers("/", "/api/v1/auth/login").permitAll()
                                 .anyRequest().authenticated())
                 .oauth2ResourceServer((oauth2) -> oauth2.jwt(Customizer.withDefaults())  //Cấu hình ứng dụng như một OAuth2 Resource Server, sử dụng JWT để xác thực.
                         .authenticationEntryPoint(customAuthenticationEntryPoint)) // gọi đến class config customauthenentrypoint
@@ -69,7 +69,7 @@ public class SecurityConfiguration {
         // ánh xạ các quyền từ claim 'hungbui' (trong JWT payload) mà không cần tiền tố (prefix).
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
         grantedAuthoritiesConverter.setAuthorityPrefix("");
-        grantedAuthoritiesConverter.setAuthoritiesClaimName("hungbui");
+        grantedAuthoritiesConverter.setAuthoritiesClaimName("permission");
 
         //chuyển đổi JWT thành các quyền hạn của người dùng.
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
@@ -103,3 +103,4 @@ public class SecurityConfiguration {
     }
 
 }
+
